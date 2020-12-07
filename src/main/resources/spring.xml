@@ -1,0 +1,79 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+	<!-- Spring配置开始 -->
+
+	<!-- 配置Service扫描器 -->
+	<context:component-scan base-package="com.bookstore.service" />
+
+	<!-- 配置外部资源 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="username" value="${mysql.user}" />
+		<property name="password" value="${mysql.password}" />
+		<property name="url" value="${mysql.jdbcUrl}" />
+		<!-- Druid连接池能根据url自动识别驱动。 -->
+		<!-- <property name="driverClassName" value="${mysql.driverClass}" /> -->
+	</bean>
+	
+	<!-- Spring配置结束 -->
+	
+	<!-- MyBatis配置开始 -->
+
+	<!-- 配置连接工厂 -->
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 指定数据源 -->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- 指定全局配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<!-- 指定Mapper配置文件，扫描所有的文件 -->
+		<!-- <property name="mapperLocations" value="classpath:mybatis/mappers/**/*.xml" /> -->
+		<!-- 指定别名包 -->
+		<property name="typeAliasesPackage" value="com.bookstore.bean"/>
+	</bean>
+
+	<!-- 配置Mapper接口的扫描器 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.bookstore.mapper"/>
+	</bean>
+	
+	<!-- Spring配置结束 -->
+	
+	<!-- Transaction配置开始 -->
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 配置基于注解的事务管理 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<!-- Transaction配置结束 -->
+	
+	<!-- Scheduled配置开始 -->
+
+	<!-- 配置Task扫描器 -->
+	<context:component-scan base-package="com.bookstore.task" />
+
+	<!-- 开启基于注解的配置 -->
+	<task:annotation-driven scheduler="scheduler" executor="executor" />
+
+	<!-- 配置调度线程池 -->
+	<task:scheduler id="scheduler" pool-size="5" />
+
+	<!-- 配置执行线程池 -->
+	<task:executor id="executor" pool-size="5" />
+	
+	<!-- Scheduled配置结束 -->
+	
+</beans>
